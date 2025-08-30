@@ -1,12 +1,11 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <script src="https://kit.fontawesome.com/a076d05399.js"></script>
-    <title>sort_visual</title>
+    <title>Sorting Visualizer</title>
 
     <script src="libraries/p5.js"></script>
     <script src="libraries/p5.dom.js"></script>
@@ -21,37 +20,42 @@
     <nav>
         <ul>
             <li>
-                <a href="#" class="clickable">Algorithms</a>
-                <ul>
-                    <li><a href="#" class="clickable" id="bubbleSort">Bubble Sort</a></li>
-                    <li><a href="#" class="clickable" id="selectionSort">Selection Sort</a></li>
+                <a href="#" class="clickable" aria-haspopup="true" aria-expanded="false"
+                    aria-controls="algorithms-menu">Algorithms</a>
+                <ul id="algorithms-menu" role="menu" aria-label="Sorting Algorithms">
+                    <li role="none"><a href="#" class="clickable" id="bubbleSort" role="menuitem">Bubble Sort</a></li>
+                    <li role="none"><a href="#" class="clickable" id="selectionSort" role="menuitem">Selection Sort</a>
+                    </li>
+                    <li role="none"><a href="#" class="clickable" id="mergeSort" role="menuitem">Merge Sort</a></li>
+                    <li role="none"><a href="#" class="clickable" id="quickSort" role="menuitem">Quick Sort</a></li>
+                </ul>
             </li>
-            <li><a href="#" class="clickable" id="mergeSort">Merge Sort</a></li>
-            <li><a href="#" class="clickable" id="quickSort">Quick Sort</a></li>
-        </ul>
-        </li>
-        <li>
-            <a href="#">Data size</a>
-            <input class="range-input" type="range" min="30" max="60" value="42" class="slider" id="data_size" />
-        </li>
-        <li>
-            <a href="#">Speed</a>
-            <input class="range-input" type="range" min="0" max="40" value="40" class="slider" id="frm" />
-        </li>
-        <li><a href="#" id="time">Time: -- </a></li>
-        <li><a href="#" class="clickable" id="start">Start</a></li>
-        <li><a href="#" class="clickable" id="stop">Stop</a></li>
-        <li><a href="#" class="clickable" id="reset">Reset</a></li>
-        <li><a href="https://github.com/aritrobasu2003/Sorting_Analyser" class="clickable">Source Code</a></li>
+            <li>
+                <label for="data_size" class="sr-only">Data Size</label>
+                <input class="range-input" type="range" min="30" max="60" value="42" id="data_size" aria-valuemin="30"
+                    aria-valuemax="60" aria-valuenow="42" aria-label="Data Size" />
+            </li>
+            <li>
+                <label for="frm" class="sr-only">Speed</label>
+                <input class="range-input" type="range" min="0" max="40" value="40" id="frm" aria-valuemin="0"
+                    aria-valuemax="40" aria-valuenow="40" aria-label="Speed" />
+            </li>
+            <li><a href="#" id="time" aria-live="polite" aria-atomic="true">Time: -- </a></li>
+            <li><a href="#" class="clickable" id="start">Start</a></li>
+            <li><a href="#" class="clickable" id="stop">Stop</a></li>
+            <li><a href="#" class="clickable" id="reset">Reset</a></li>
+            <li><a href="https://github.com/aritrobasu2003/Sorting_Analyser" class="clickable" target="_blank"
+                    rel="noopener noreferrer">Source Code</a></li>
         </ul>
     </nav>
-    <div id="algo-display-container">
+
+    <div id="algo-display-container" role="region" aria-live="polite" aria-atomic="true">
         <h1 id="current-algo">Bubble Sort</h1>
     </div>
 
-    <div class="canvas-container">
+    <main class="canvas-container" role="main" aria-label="Sorting Visualization Canvas">
         <!-- Canvas will be created by p5.js -->
-    </div>
+    </main>
 </body>
 
 </html>

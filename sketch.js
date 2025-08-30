@@ -1,10 +1,6 @@
 //constants/globals
 var arr = Array(0);
-const container = document.querySelector(".canvas-container");
-const width = container ? container.offsetWidth : window.innerWidth;
-const height = container ? container.offsetHeight : window.innerHeight - 200;
 var thick = 20;
-var len_arr = Math.floor((width - thick) / thick);
 var sorted_arr = Array(0);
 var start_sorting = false;
 var sorting_paused = false;
@@ -12,6 +8,132 @@ var frame_rate_val = 40;
 var timer_arr = [];
 var time_taken = 0;
 var pause = false;
+
+var container;
+var style;
+var paddingLeft;
+var paddingRight;
+var paddingTop;
+var paddingBottom;
+var width;
+var height;
+var len_arr;
+
+function setup() {
+  print_hello();
+
+  container = document.querySelector(".canvas-container");
+  style = window.getComputedStyle(container);
+  paddingLeft = parseInt(style.paddingLeft) || 0;
+  paddingRight = parseInt(style.paddingRight) || 0;
+  paddingTop = parseInt(style.paddingTop) || 0;
+  paddingBottom = parseInt(style.paddingBottom) || 0;
+
+  width = container
+    ? container.offsetWidth - paddingLeft - paddingRight
+    : window.innerWidth;
+  height = container
+    ? container.offsetHeight - paddingTop - paddingBottom
+    : window.innerHeight - 200;
+
+  len_arr = Math.floor(width / thick) - 1;
+
+  const canvas = createCanvas(width, height);
+  canvas.parent(container);
+
+  // Log container and canvas sizes for debugging
+  console.log("Container size:", container.offsetWidth, container.offsetHeight);
+  console.log("Canvas size:", canvas.width, canvas.height);
+
+  // Handle window resize to update canvas size dynamically
+  window.addEventListener("resize", () => {
+    container = document.querySelector(".canvas-container");
+    style = window.getComputedStyle(container);
+    paddingLeft = parseInt(style.paddingLeft) || 0;
+    paddingRight = parseInt(style.paddingRight) || 0;
+    paddingTop = parseInt(style.paddingTop) || 0;
+    paddingBottom = parseInt(style.paddingBottom) || 0;
+
+    let newWidth = container.offsetWidth - paddingLeft - paddingRight;
+    let newHeight = container.offsetHeight - paddingTop - paddingBottom;
+    resizeCanvas(newWidth, newHeight);
+    width = newWidth;
+    height = newHeight;
+    len_arr = Math.floor(width / thick) - 1;
+    arr = [];
+    sorted_arr = [];
+    setup_arr();
+  });
+
+  var btns = document.querySelectorAll(".clickable"); //all buttons
+  // console.log(btns);
+  for (btn of btns) {
+    btn.addEventListener("click", function () {
+      // console.log("clicked", this.id); debugging button
+      if (this.id == "reset") {
+        //gets a new arr
+        //styles the element to default
+        arr = [];
+        sorted_arr = [];
+        start_sorting = false;
+        sorting_paused = false;
+        frameRate(frame_rate_val);
+        setup_arr();
+        document.getElementById("time").innerHTML = "Time: 0us";
+        document.getElementById("frm").value = "40";
+      } else if (this.id == "start") {
+        if (!start_sorting) {
+          start_sorting = true;
+          sorting_paused = false;
+          start_sort(current_algo);
+          time_this_algo(current_algo);
+          frameRate(frame_rate_val);
+        } else if (start_sorting && sorting_paused) {
+          sorting_paused = false;
+          frameRate(frame_rate_val);
+        }
+      } else if (this.id == "stop") {
+        if (start_sorting && !sorting_paused) {
+          sorting_paused = true;
+          frameRate(0);
+        }
+      } else {
+        if (this.id != "") {
+          if (start_sorting == false) {
+            //if no other sorting algo was selected
+            start_sorting = true;
+            current_algo = this.id;
+            updateAlgorithmDisplay(this.id);
+            start_sort(this.id);
+            time_this_algo(this.id);
+            frameRate(frame_rate_val);
+          } else {
+            //if other algo was running
+            //reset and run this new algo
+            arr = [];
+            sorted_arr = [];
+            start_sorting = false;
+            sorting_paused = false;
+            frameRate(frame_rate_val);
+            setup_arr();
+            document.getElementById("time").innerHTML = "Time:0us";
+            start_sorting = true;
+            current_algo = this.id;
+            updateAlgorithmDisplay(this.id);
+            time_this_algo(this.id);
+            start_sort(this.id);
+          }
+        }
+      }
+
+      return true;
+    });
+  }
+  slider_control(); //slide control
+  setup_arr(); //create the arr
+  current_algo = "bubbleSort"; // default algorithm
+  updateAlgorithmDisplay(current_algo);
+}
 //each bar has following properties
 class Element {
   constructor(val) {
@@ -22,49 +144,108 @@ class Element {
   }
 
   draw(i, isSorted = false) {
-    // Enhanced bar design with better visual distinction
+    // Modern bar design with smooth animations and better visual distinction
     noStroke();
 
-    // Determine bar color based on state - more distinct but still elegant
+    // Determine bar color based on state with smooth transitions
     let barFill;
     let borderColor = null;
+    let glowEffect = false;
 
     if (this.compare == true) {
-      // Comparing state - vibrant cyan for better visibility
+      // Comparing state - vibrant cyan with glow effect
       barFill = color(0, 200, 255, 255);
       borderColor = color(0, 150, 200, 255);
+      glowEffect = true;
     } else if (this.swap == true) {
-      // Swapping state - vibrant red-orange for clear indication
+      // Swapping state - vibrant red-orange with stronger glow
       barFill = color(255, 100, 50, 255);
       borderColor = color(255, 70, 30, 255);
+      glowEffect = true;
     } else if (isSorted) {
-      // Sorted state - bright gold/yellow for final position
+      // Sorted state - bright gold with subtle glow
       barFill = color(255, 215, 0, 255);
       borderColor = color(255, 180, 0, 255);
+      glowEffect = true;
     } else {
-      // Default state - purple-blue for unsorted bars
+      // Default state - modern gradient for unsorted bars
       barFill = color(120, 100, 220, 255);
       borderColor = color(100, 80, 200, 255);
     }
 
-    // Draw bar with smooth rounded corners
+    // Adjust x and y to add padding from right and bottom
+    const paddingRight = 60; // match CSS padding-right
+    const paddingBottom = 60; // match CSS padding-bottom
+
     const x = i * thick;
-    const y = height - this.val;
+    const y = height - this.val - paddingBottom;
     const barWidth = thick;
     const barHeight = this.val;
-    const cornerRadius = min(6, barWidth / 4);
+    const cornerRadius = min(8, barWidth / 3);
 
-    // Draw subtle border for better distinction
-    if (borderColor) {
-      stroke(borderColor);
-      strokeWeight(1);
-      fill(barFill);
-      rect(x, y, barWidth, barHeight, cornerRadius, cornerRadius, 0, 0);
-      noStroke();
+    // Apply glow effect if needed
+    if (glowEffect) {
+      drawingContext.shadowBlur = 15;
+      drawingContext.shadowColor = barFill.toString();
     } else {
-      fill(barFill);
-      rect(x, y, barWidth, barHeight, cornerRadius, cornerRadius, 0, 0);
+      drawingContext.shadowBlur = 0;
     }
+
+    // Draw bar with gradient fill for better depth
+    if (this.compare || this.swap || isSorted) {
+      // Enhanced bar for active states
+      const gradient = drawingContext.createLinearGradient(
+        x,
+        y,
+        x,
+        y + barHeight
+      );
+      gradient.addColorStop(0, barFill.toString());
+      gradient.addColorStop(
+        1,
+        lerpColor(barFill, color(0, 0, 0, 100), 0.3).toString()
+      );
+
+      drawingContext.fillStyle = gradient;
+      drawingContext.fillRect(x, y, barWidth, barHeight);
+
+      // Draw border
+      if (borderColor) {
+        stroke(borderColor);
+        strokeWeight(2);
+        noFill();
+        rect(x, y, barWidth, barHeight, cornerRadius);
+        noStroke();
+      }
+    } else {
+      // Default bar with subtle gradient
+      const gradient = drawingContext.createLinearGradient(
+        x,
+        y,
+        x,
+        y + barHeight
+      );
+      gradient.addColorStop(0, barFill.toString());
+      gradient.addColorStop(
+        1,
+        lerpColor(barFill, color(0, 0, 0, 100), 0.2).toString()
+      );
+
+      drawingContext.fillStyle = gradient;
+      drawingContext.fillRect(x, y, barWidth, barHeight, cornerRadius);
+
+      // Subtle border
+      if (borderColor) {
+        stroke(lerpColor(borderColor, color(0, 0, 0, 100), 0.5));
+        strokeWeight(1);
+        noFill();
+        rect(x, y, barWidth, barHeight, cornerRadius);
+        noStroke();
+      }
+    }
+
+    // Reset shadow
+    drawingContext.shadowBlur = 0;
   }
 }
 
@@ -93,11 +274,12 @@ function setup() {
   const paddingTop = parseInt(style.paddingTop) || 0;
   const paddingBottom = parseInt(style.paddingBottom) || 0;
 
+  // Adjust width and height to account for padding to prevent overflow
   let width = container
-    ? container.offsetWidth - paddingLeft - paddingRight
+    ? container.offsetWidth - paddingLeft - paddingRight - paddingRight // subtract paddingRight twice to leave space
     : window.innerWidth;
   let height = container
-    ? container.offsetHeight - paddingTop - paddingBottom
+    ? container.offsetHeight - paddingTop - paddingBottom - paddingBottom // subtract paddingBottom twice to leave space
     : window.innerHeight - 200;
   const canvas = createCanvas(width, height);
   canvas.parent(container);
@@ -108,8 +290,8 @@ function setup() {
 
   // Handle window resize to update canvas size dynamically
   window.addEventListener("resize", () => {
-    let newWidth = container.offsetWidth;
-    let newHeight = container.offsetHeight;
+    let newWidth = container.offsetWidth - paddingRight * 2;
+    let newHeight = container.offsetHeight - paddingBottom * 2;
     resizeCanvas(newWidth, newHeight);
     width = newWidth;
     height = newHeight;
@@ -225,6 +407,10 @@ function slider_control() {
   var size_slider = document.getElementById("data_size");
   size_slider.oninput = function () {
     thick = 62 - size_slider.value;
+    // Clamp thick to minimum 5 to avoid disappearing bars or division by zero
+    if (thick < 5) {
+      thick = 5;
+    }
     //higher the slider more the bars
     len_arr = Math.floor(width / thick);
     //reset everything
