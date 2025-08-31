@@ -3,6 +3,7 @@ function* bubbleSort(arr) {
   console.log("in");
 
   for (let i = 0; i < arr.length; i++) {
+    swapped = false;
     for (let j = 0; j < arr.length - i - 1; j++) {
       //compare return arr[j]>arr[j+1]
 
@@ -13,9 +14,9 @@ function* bubbleSort(arr) {
       }
       yield;
     }
-  }
-  if (swapped == false) {
-    return;
+    if (!swapped) {
+      break;
+    }
   }
 }
 
