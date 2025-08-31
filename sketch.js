@@ -263,115 +263,6 @@ const timer_algo = {
   quickSort: quickSortLomuto_t,
 };
 
-function setup() {
-  print_hello();
-  // Create canvas with original dimensions
-  const container = document.querySelector(".canvas-container");
-  // Get computed style padding of container
-  const style = window.getComputedStyle(container);
-  const paddingLeft = parseInt(style.paddingLeft) || 0;
-  const paddingRight = parseInt(style.paddingRight) || 0;
-  const paddingTop = parseInt(style.paddingTop) || 0;
-  const paddingBottom = parseInt(style.paddingBottom) || 0;
-
-  // Adjust width and height to account for padding to prevent overflow
-  let width = container
-    ? container.offsetWidth - paddingLeft - paddingRight - paddingRight // subtract paddingRight twice to leave space
-    : window.innerWidth;
-  let height = container
-    ? container.offsetHeight - paddingTop - paddingBottom - paddingBottom // subtract paddingBottom twice to leave space
-    : window.innerHeight - 200;
-  const canvas = createCanvas(width, height);
-  canvas.parent(container);
-
-  // Log container and canvas sizes for debugging
-  console.log("Container size:", container.offsetWidth, container.offsetHeight);
-  console.log("Canvas size:", canvas.width, canvas.height);
-
-  // Handle window resize to update canvas size dynamically
-  window.addEventListener("resize", () => {
-    let newWidth = container.offsetWidth - paddingRight * 2;
-    let newHeight = container.offsetHeight - paddingBottom * 2;
-    resizeCanvas(newWidth, newHeight);
-    width = newWidth;
-    height = newHeight;
-    len_arr = Math.floor(width / thick);
-    arr = [];
-    sorted_arr = [];
-    setup_arr();
-  });
-
-  var btns = document.querySelectorAll(".clickable"); //all buttons
-  // console.log(btns);
-  for (btn of btns) {
-    btn.addEventListener("click", function () {
-      // console.log("clicked", this.id); debugging button
-      if (this.id == "reset") {
-        //gets a new arr
-        //styles the element to default
-        arr = [];
-        sorted_arr = [];
-        start_sorting = false;
-        sorting_paused = false;
-        frameRate(frame_rate_val);
-        setup_arr();
-        document.getElementById("time").innerHTML = "Time: 0us";
-        document.getElementById("frm").value = "40";
-      } else if (this.id == "start") {
-        if (!start_sorting) {
-          start_sorting = true;
-          sorting_paused = false;
-          start_sort(current_algo);
-          time_this_algo(current_algo);
-          frameRate(frame_rate_val);
-        } else if (start_sorting && sorting_paused) {
-          sorting_paused = false;
-          frameRate(frame_rate_val);
-        }
-      } else if (this.id == "stop") {
-        if (start_sorting && !sorting_paused) {
-          sorting_paused = true;
-          frameRate(0);
-        }
-      } else {
-        if (this.id != "") {
-          if (start_sorting == false) {
-            //if no other sorting algo was selected
-            start_sorting = true;
-            current_algo = this.id;
-            updateAlgorithmDisplay(this.id);
-            start_sort(this.id);
-            time_this_algo(this.id);
-            frameRate(frame_rate_val);
-          } else {
-            //if other algo was running
-            //reset and run this new algo
-            arr = [];
-            sorted_arr = [];
-            start_sorting = false;
-            sorting_paused = false;
-            frameRate(frame_rate_val);
-            setup_arr();
-            document.getElementById("time").innerHTML = "Time:0us";
-            start_sorting = true;
-            current_algo = this.id;
-            updateAlgorithmDisplay(this.id);
-            time_this_algo(this.id);
-            start_sort(this.id);
-          }
-        }
-      }
-
-      return true;
-    });
-  }
-  slider_control(); //slide control
-  setup_arr(); //create the arr
-  current_algo = "bubbleSort"; // default algorithm
-  updateAlgorithmDisplay(current_algo);
-  // console.log(frameRate());
-}
-
 function updateAlgorithmDisplay(algoId) {
   const algoNames = {
     bubbleSort: "Bubble Sort",
@@ -486,14 +377,6 @@ function draw_arr() {
     } else {
       arr[i].draw(i);
     }
-    // Debug: Log bar position and size to check overflow
-    const x = i * thick;
-    const y = height - arr[i].val;
-    const barWidth = thick;
-    const barHeight = arr[i].val;
-    console.log(
-      `Bar ${i}: x=${x}, y=${y}, width=${barWidth}, height=${barHeight}`
-    );
     // Reset the state flags after drawing
     arr[i].compare = false;
     arr[i].swap = false;
